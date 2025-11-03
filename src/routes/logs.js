@@ -1,18 +1,28 @@
-// src/routes/logs.js
+// routes/logs.js
 import express from "express";
 import mgmtDb from "../db/adminDb.js";
-const router = express.Router();
+import { requireAuth } from "../middleware/auth.js";
 
-router.get("/", async (req,res) => {
-  const { from, to, user_id, connection_id } = req.query;
-  const q = mgmtDb("logs").select("*");
-  if (from) q.where("created_at", ">=", from);
-  if (to) q.where("created_at", "<=", to);
-  if (user_id) q.where("user_id", user_id);
-  if (connection_id) q.where("connection_id", connection_id);
-  q.orderBy("created_at","desc").limit(500);
-  const logs = await q;
-  res.json(logs);
+const router = express.Router();
+router.use(requireAuth);
+
+// GET /logs?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&user=xyz
+router.get("/", async (req, res) => {
+  try {
+    const { date_from, date_to, user } = req.query;
+    const q = mgmtDb("logs").select("id", "created_at", "username", "action", "codLocal", "articuloCodigo", "valorActual", "requiereCorreccion", "campo", "valorNuevo").orderBy("created_at","desc");
+
+  
+    if (date_from) q.where("created_at", ">=", `${date_from} 00:00:00`);
+    if (date_to) q.where("created_at", "<=", `${date_to} 23:59:59`);
+    if (user) q.where("username", user);
+
+    const rows = await q.limit(1000);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener logs" });
+  }
 });
 
 export default router;

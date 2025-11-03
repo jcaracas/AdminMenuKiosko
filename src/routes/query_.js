@@ -93,67 +93,64 @@ router.get("/articulos/:connectionId", async (req, res) => {
  * Body: { connectionId, codigo }  -> togglea el campo Web (0/1) para artículo con Codigo y Rubro=18
  */
 router.post("/toggle-web", async (req, res) => {
-    const { connectionId, codigo, username, codLocal } = req.body;
+  const { connectionId, codigo, username, codLocal } = req.body;
 
-    if (!connectionId || !codigo || !username || !codLocal) {
-      return res.status(400).json({ success: false, message: "connectionId, codigo, username y codLocal son requeridos" });
-    }
-  
+  if (!connectionId || !codigo || !username || !codLocal) {
+    return res.status(400).json({ success: false, message: "connectionId, codigo, username y codLocal son requeridos" });
+  }
+
   try {
     const conn = await getConnectionById(connectionId);
-    if (!conn) return res.status(404).json({ success: false, message: "Conexión no encontrada" });
-
     const config = makeMssqlConfig(conn.host);
     const pool = await sql.connect(config);
-    const request = pool.request();
 
+    const result = await pool.request().query(`
+      DECLARE @output TABLE (Web BIT);
     
-
-    // 1) Obtener valor actual y verificar grupo11 mayor a 0
-    request.input("codigo", sql.VarChar(100), codigo);
-    const selectQ = "SELECT Web FROM articulo WHERE Codigo = @codigo AND grupo11 > @rubro";
-    request.input("rubro", sql.Int, 0);
-    const sel = await request.query(selectQ);
-
-    if (!sel.recordset || sel.recordset.length === 0) {
+      UPDATE articulo
+      SET Web = CASE WHEN Web = 1 THEN 0 ELSE 1 END
+      OUTPUT inserted.Web INTO @output
+      WHERE Codigo = '${codigo}' AND grupo11 > 0;
+    
+      SELECT Web FROM @output;
+    `);
+    
+    if (!result.recordset.length) {
       await pool.close();
-      return res.status(404).json({ success: false, message: "Artículo no encontrado o no pertenece al grupo" });
+      return res.status(404).json({ success: false, message: "Artículo no encontrado" });
     }
-
-    const currentWeb = sel.recordset[0].Web; // asumo 0/1 o bit
-    const newWeb = currentWeb ? 0 : 1;
-
-    // 2) Actualizar
-    const updReq = pool.request();
-    updReq.input("codigo", sql.VarChar(100), codigo);
-    updReq.input("newWeb", sql.Int, newWeb);
-    //updReq.input("rubro", sql.Int, 18);
-
-    const updateQ = "UPDATE articulo SET Web = @newWeb WHERE Codigo = @codigo";
-    const upd = await updReq.query(updateQ);
-
-    await pool.close();
-    const requiereCorreccion = newWeb ? 0 : 1;
-
     
-    // 3) Insert log
+    // FIX —— MSSQL BIT puede llegar como Buffer
+    let raw = result.recordset[0].Web;
+    const nuevoValor = Buffer.isBuffer(raw) ? raw[0] : raw;
+    const valorBoolean = nuevoValor === 1;
+    const requiereCorreccion = !valorBoolean;
+    
+    await pool.close();
+    
+    // Insert log
     await mgmtDb("logs").insert({
-        username,
-        codLocal,
-        articuloCodigo: codigo,
-        campo: "Web",
-        valorNuevo: newWeb,
-        requiereCorreccion
+      username,
+      codLocal,
+      articuloCodigo: codigo,
+      campo: "Web",
+      valorNuevo: valorBoolean,
+      requiereCorreccion
+    });
+    
+    return res.json({
+      success: true,
+      message: `Artículo ${codigo} actualizado (Web=${nuevoValor})`,
+      newWeb: nuevoValor
     });
 
-
-
-
-    return res.json({ success: true, message: `Articulo actualizado a ${newWeb} para Codigo ${codigo}`, newWeb });
   } catch (err) {
-    try { sql.close(); } catch (e) {}
-    return res.status(500).json({ success: false, message: `Error al actualizar articulo: ${err.message}` });
+    try { sql.close(); } catch {}
+    console.error("ERROR toggle-web:", err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
+
+
 
 export default router;

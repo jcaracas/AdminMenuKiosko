@@ -27,8 +27,9 @@ router.post("/login", async (req, res) => {
   if (!user) return res.status(401).json({ error: "invalid credentials" });
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: "invalid credentials" });
-  const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "2h" });
-  res.json({ token });
+  const token = jwt.sign({ id: user.id, username: user.username,role:user.role }, JWT_SECRET, { expiresIn: "4h" });
+   
+  res.json({ token ,user});
 });
 
 // middleware para rutas protegidas

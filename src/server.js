@@ -7,6 +7,8 @@ import authRouter, { authenticateMiddleware } from "./auth.js";
 import connectionsRouter from "./routes/connections.js";
 import queryRouter from "./routes/query.js";
 import logsRouter from "./routes/logs.js";
+import usersRouter from "./routes/users.js";
+import reportsRouter from "./routes/reports.js";
 import startDailyAlert from "./jobs/dailyAlert.js";
 
 const app = express();
@@ -25,6 +27,8 @@ app.use(authenticateMiddleware);
 app.use("/connections", connectionsRouter);
 app.use("/query", queryRouter);
 app.use("/logs", logsRouter);
+app.use("/users", usersRouter);
+app.use("/reports", reportsRouter);
 
 // start job
 startDailyAlert();
