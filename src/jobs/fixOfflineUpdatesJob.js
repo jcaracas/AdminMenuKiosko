@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import mgmtDb from "../db/adminDb.js";
 import sql from "mssql";
-import { getConnectionById, makeMssqlConfig } from "../db/connection.js";
+import { getConnectionById, makeMssqlConfig } from "../db/connections.js";
 
 async function runFixOfflineUpdates() {
   console.log("🛠️ Iniciando tarea automática de reparación de Web...");

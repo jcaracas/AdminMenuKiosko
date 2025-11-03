@@ -10,6 +10,8 @@ import logsRouter from "./routes/logs.js";
 import usersRouter from "./routes/users.js";
 import reportsRouter from "./routes/reports.js";
 import startDailyAlert from "./jobs/dailyAlert.js";
+import "./jobs/fixOfflineUpdatesJob.js";
+
 
 const app = express();
 
