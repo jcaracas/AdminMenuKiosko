@@ -2,11 +2,13 @@
 import express from "express";
 import mgmtDb from "../db/adminDb.js";
 import sql from "mssql";
-//import { requireAuth } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 
 import { getConnectionById } from "../db/connections.js";
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 // listar conexiones
 router.get("/", async (req, res) => {
@@ -96,7 +98,7 @@ router.get("/test/:id", async (req, res) => {
       },
     };
 
-    console.log(`🔍 Probando conexión con host: ${connConfig.host} (${connConfig.name})...`);
+    //console.log(`🔍 Probando conexión con host: ${connConfig.host} (${connConfig.name})...`);
 
     const pool = new sql.ConnectionPool(config);
     await pool.connect();
