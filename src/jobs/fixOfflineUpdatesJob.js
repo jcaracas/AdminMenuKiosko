@@ -30,17 +30,23 @@ async function runFixOfflineUpdates() {
     // 3️⃣ Procesar cada local
     for (const codLocal of Object.keys(porLocal)) {
       console.log(`🏬 Procesando local ${codLocal}`);
-
+      const LocalID = await mgmtDb("connections")
+      .where("codLocal", codLocal)
+      .select("*");
+      
       const items = porLocal[codLocal];
 
       // Obtener la conexión de ese local
-      const conn = await getConnectionById(codLocal);
+      const conn = await getConnectionById(LocalID[0].id);
+      
       if (!conn) {
         console.log(`⚠️ Sin conexión registrada para local ${codLocal}`);
         continue;
       }
 
       const config = makeMssqlConfig(conn.host);
+      console.log(config);
+      
 
       let pool;
       try {
@@ -95,7 +101,11 @@ async function runFixOfflineUpdates() {
   }
 }
 
-// 🕒 Programar: todos los días 09:35 AM
-cron.schedule("35 9 * * *", runFixOfflineUpdates);
+// 🕒 Programar: todos los días 10:35 AM
+cron.schedule("30 10 * * *", runFixOfflineUpdates);
 
+if (process.env.RUN_FIX_NOW === "true") {
+  console.log("🚀 Ejecutando reparación manual inmediata...");
+  runFixOfflineUpdates();
+}
 export default runFixOfflineUpdates;

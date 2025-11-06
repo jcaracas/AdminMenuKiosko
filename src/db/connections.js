@@ -28,10 +28,10 @@ export async function getConnectionById(id) {
 // ✅ Configuración dinámica MSSQL
 export function makeMssqlConfig(host) {
   return {
-    user: process.env.MSSQL_USER,
-    password: process.env.MSSQL_PASS,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
     server: host, // viene de la BD connections.host
-    database: process.env.MSSQL_DB,
+    database: process.env.DB_NAME,
     port: parseInt(process.env.MSSQL_PORT) || 1433,
     options: {
       encrypt: false, // true si usas Azure
