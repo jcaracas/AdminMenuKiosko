@@ -29,20 +29,21 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
+
 // Static file setup (React build only if exists)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const buildPath = path.join(__dirname, "../build");
+const buildPath = path.join(__dirname, "../client/build");
 
 // Serve frontend static build only if folder exists
 import fs from "fs";
 const serveFrontend = fs.existsSync(buildPath);
 
 if (serveFrontend) {
-  console.log("✅ Serviendo frontend desde /build");
+  console.log("✅ Serviendo frontend desde /client/build");
   app.use(express.static(buildPath));
 } else {
-  console.log("⚠️ No se encontró carpeta build/ — modo desarrollo backend");
+  console.log("⚠️ No se encontró carpeta client/build — modo desarrollo backend");
 }
 
 // Public routes
@@ -56,12 +57,19 @@ app.use("/logs", logsRouter);
 app.use("/users", usersRouter);
 app.use("/reports", reportsRouter);
 
-// SPA fallback for React
+// ✅ SPA fallback (debe ir al final, después de todas las rutas)
 if (serveFrontend) {
-  app.get("*", (req, res) => {
+  app.get("*", (req, res, next) => {
+    // Evitar interceptar rutas API
+    if (req.originalUrl.startsWith("/auth") || req.originalUrl.startsWith("/connections") ||
+        req.originalUrl.startsWith("/query") || req.originalUrl.startsWith("/logs") ||
+        req.originalUrl.startsWith("/users") || req.originalUrl.startsWith("/reports")) {
+      return next();
+    }
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
+
 
 // Cron jobs
 startDailyAlert();
