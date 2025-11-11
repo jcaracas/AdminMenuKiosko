@@ -34,7 +34,7 @@ app.get("/health", (req, res) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 //const buildPath = path.join(__dirname, "../client/build");
-const buildPath = path.resolve(__dirname, "../client/build");
+const buildPath = path.join(__dirname, "../client/build");
 
 // Serve frontend static build only if folder exists
 import fs from "fs";
@@ -60,7 +60,7 @@ app.use("/reports", reportsRouter);
 
 // ✅ SPA fallback (debe ir al final, después de todas las rutas)
 if (serveFrontend) {
-  app.get("/*", (req, res, next) => {
+  app.get(/^(?!\/(auth|connections|query|logs|users|reports)).*/, (req, res, next) => {
     // Excluir rutas API del backend
     if (
       req.originalUrl.startsWith("/auth") ||
