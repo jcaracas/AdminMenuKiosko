@@ -60,13 +60,20 @@ app.use("/reports", reportsRouter);
 
 // ✅ SPA fallback (debe ir al final, después de todas las rutas)
 if (serveFrontend) {
-  app.get(/^(?!\/(auth|connections|query|logs|users|reports)).*/, (req, res, next) => {
-    // Evitar interceptar rutas API
-    if (req.originalUrl.startsWith("/auth") || req.originalUrl.startsWith("/connections") ||
-        req.originalUrl.startsWith("/query") || req.originalUrl.startsWith("/logs") ||
-        req.originalUrl.startsWith("/users") || req.originalUrl.startsWith("/reports")) {
+  app.get("*", (req, res, next) => {
+    // Excluir rutas API del backend
+    if (
+      req.originalUrl.startsWith("/auth") ||
+      req.originalUrl.startsWith("/connections") ||
+      req.originalUrl.startsWith("/query") ||
+      req.originalUrl.startsWith("/logs") ||
+      req.originalUrl.startsWith("/users") ||
+      req.originalUrl.startsWith("/reports")
+    ) {
       return next();
     }
+
+    // Servir index.html para React (por ejemplo /login, /admin, etc.)
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
