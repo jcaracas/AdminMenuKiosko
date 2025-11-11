@@ -60,7 +60,7 @@ app.use("/reports", reportsRouter);
 
 // ✅ SPA fallback (debe ir al final, después de todas las rutas)
 if (serveFrontend) {
-  app.get(/^(?!\/(auth|connections|query|logs|users|reports)).*/, (req, res, next) => {
+  app.get("/*", (req, res, next) => {
     // Excluir rutas API del backend
     if (
       req.originalUrl.startsWith("/auth") ||
