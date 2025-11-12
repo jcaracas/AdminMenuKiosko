@@ -50,14 +50,6 @@ if (serveFrontend) {
 // Public routes
 app.use("/auth", authRouter);
 
-// Protected routes
-app.use(authenticateMiddleware);
-app.use("/connections", connectionsRouter);
-app.use("/query", queryRouter);
-app.use("/logs", logsRouter);
-app.use("/users", usersRouter);
-app.use("/reports", reportsRouter);
-
 // ✅ SPA fallback (debe ir al final, después de todas las rutas)
 if (serveFrontend) {
   app.get(/^(?!\/(auth|connections|query|logs|users|reports)).*/, (req, res, next) => {
@@ -77,6 +69,15 @@ if (serveFrontend) {
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
+
+// Protected routes
+app.use(authenticateMiddleware);
+app.use("/connections", connectionsRouter);
+app.use("/query", queryRouter);
+app.use("/logs", logsRouter);
+app.use("/users", usersRouter);
+app.use("/reports", reportsRouter);
+
 
 
 // Cron jobs
