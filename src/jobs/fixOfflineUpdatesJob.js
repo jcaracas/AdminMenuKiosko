@@ -45,7 +45,6 @@ async function runFixOfflineUpdates() {
       }
 
       const config = makeMssqlConfig(conn.host);
-      console.log(config);
       
 
       let pool;

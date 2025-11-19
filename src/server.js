@@ -14,7 +14,7 @@ import logsRouter from "./routes/logs.js";
 import usersRouter from "./routes/users.js";
 import reportsRouter from "./routes/reports.js";
 
-import startDailyAlert from "./jobs/dailyAlert.js";
+//import startDailyAlert from "./jobs/dailyAlert.js";
 import "./jobs/fixOfflineUpdatesJob.js";
 
 // Create server
@@ -81,7 +81,7 @@ app.use("/reports", reportsRouter);
 
 
 // Cron jobs
-startDailyAlert();
+//startDailyAlert();
 
 // Run server
 const PORT = process.env.PORT || 3000;
